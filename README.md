@@ -127,6 +127,80 @@ comment: Текстовий коментар клієнта.
 
 ![image](https://github.com/project-practicum-chnu/monumental_project2023/assets/75749649/82f5ad59-1a93-4292-8446-817fdc6a861c)
 
+Платіжна система
+Призначення
+Переказ коштів за товар замовлений в інтернет магазині;
+
+Опис функціоналу
+Клієнта, після замовлення товарів, перенаправляють на сторінку або показують способи оплати за товари, що є в корзині.
+
+Деталі реалізації
+В нашому інтернет магазині буде оплата через картку за допомогою платіжної системи Stripe (https://stripe.com/docs) Задача бекенд розробника - інтегрувати дану систему в нашу. Для перевірки працездатності stripe надає тестовий режим (https://stripe.com/docs/test-mode). Він надає можливість симулювати використання Stripe без переводу реальних коштів.
+
+У файлі налаштувань треба вказати ключі для використання тестового і потім реального режимів.
+
+Згідно документації https://stripe.com/docs/development/quickstart?lang=python інтеграція має проводитися
+
+встановити бібліотеку stripe:
+pip3 install --upgrade stripe
+Приклад Реалізації:
+
+import json
+import os
+import stripe
+
+def create_payment():
+    try:
+        data = json.loads(request.data)
+        # Create a PaymentIntent with the order amount and currency
+        intent = stripe.PaymentIntent.create(
+            amount=calculate_order_amount(data['items']),
+            currency='usd',
+            # In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+            automatic_payment_methods={
+                'enabled': True,
+            },
+        )
+        return jsonify({
+            'clientSecret': intent['client_secret']
+        })
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+Після вдалої транзакції в особистому кабінеті Stripe з'явиться відповідний запис про неї.
+
+автоматична документація АПІ
+Swagger
+Ми використаємо бібліотеку ʼdrf-yasgʼ згідно керівництва https://drf-yasg.readthedocs.io/en/stable/readme.html#usage Для встановлення необхідно pip install -U drf-yasg
+
+додати бібліотеку в settings.py
+
+INSTALLED_APPS = [
+   ...
+   'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
+   'drf_yasg',
+   ...
+]
+оновити urls.py
+
+path('swagger/', views.schema_view.with_ui('swagger', cache_timeout=0), name='swagger'),
+views.py
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API description",
+        default_version="v1",
+        description="test Description",
+        contact=openapi.Contact(email="dl@lxt.nl")
+    ),
+    public=True,
+    generator_class=OpenAPISchemaGenerator,
+    permission_classes=(permissions.AllowAny,), )
+
+Після цього ми бачитимемо тут http://127.0.0.1:8000/swagger/ все доступне АПІ і зможемо звідти робити HTTP запити
+
+
+
 Структура проекту (фронтенд) :
 
 Використані технології :
